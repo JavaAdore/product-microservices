@@ -1,0 +1,62 @@
+version: "3"
+
+services:   
+ postgres:
+  image: postgres:11
+  container_name: "normal_postgres"
+  env_file: .env
+  ports:
+    - "${POSTGRES_SERVER_PORT}:5432"
+    
+ eureka-server:
+  image: javaadore/eltaieb/eureka-server
+  env_file: .env
+#  container_name: "eureka-server"
+  ports:
+   - "${EUREKA_SERVER_PORT}:8761"
+  command: bash -c "java -jar /eureka-server.jar"
+
+ rest-gateway:
+  image: javaadore/eltaieb/rest-gateway
+  env_file: .env
+#  container_name: "rest-gateway"
+  ports:
+    - "${REST_GATEWAY_PORT}:8080"
+  depends_on:
+    - "eureka-server"
+  command: bash -c "while ! curl -s http://${EUREKA_SERVER_IP}:${EUREKA_SERVER_PORT}/up ; do echo waiting for ${EUREKA_SERVER_IP}:${EUREKA_SERVER_PORT}/up; sleep 3; done; java -jar /rest-gateway.jar"
+
+ zipkin-server:
+  image: javaadore/eltaieb/zipkin-server
+  env_file: .env
+#  container_name: "zipkin-server"
+  ports:
+    - "${ZIPKIN_SERVER_PORT}:9411"
+  depends_on:
+   - "eureka-server"
+  command: bash -c "while ! curl -s http://${EUREKA_SERVER_IP}:${EUREKA_SERVER_PORT}/up ; do echo waiting for ${EUREKA_SERVER_IP}:${EUREKA_SERVER_PORT}/up; sleep 3; done; java -jar /zipkin-server.jar"
+
+ authorization-server:
+  image: javaadore/eltaieb/authorization-server
+  env_file: .env
+#  container_name: "authorization-server"
+  depends_on:
+   - "eureka-server"
+  command: bash -c "while ! curl -s http://${EUREKA_SERVER_IP}:${EUREKA_SERVER_PORT}/up ; do echo waiting for ${EUREKA_SERVER_IP}:${EUREKA_SERVER_PORT}/up; sleep 3; done; java -jar /authorization-server.jar"
+
+ product-service:
+   image: javaadore/eltaieb/product-service
+   env_file: .env
+#   container_name: "product-service"
+   depends_on:
+     - "eureka-server"
+   command: bash -c "while ! curl -s http://${REST_GATEWAY_IP}:${REST_GATEWAY_PORT}/authorization-server/oauth/token_key ; do echo waiting for ${REST_GATEWAY_IP}:${REST_GATEWAY_PORT}/authorization-server/oauth/token_key; sleep 3; done; java -jar /product-service.jar"
+
+ review-service:
+  image: javaadore/eltaieb/review-service
+  env_file: .env
+#  container_name: "review-service"
+  depends_on:
+    - "eureka-server"
+  command: bash -c "while ! curl -s http://${REST_GATEWAY_IP}:${REST_GATEWAY_PORT}/authorization-server/oauth/token_key ; do echo waiting for ${REST_GATEWAY_IP}:${REST_GATEWAY_PORT}/authorization-server/oauth/token_key; sleep 3; done; java -jar /review-service.jar"
+    

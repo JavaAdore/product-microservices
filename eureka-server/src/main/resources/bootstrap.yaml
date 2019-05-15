@@ -1,0 +1,12 @@
+server:
+ port: ${EUREKA_SERVER_PORT}
+spring:
+ application:
+  name: eureka-server
+#It has no sense eureka register it self in itself 
+eureka:
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+  server:
+    waitTimeInMsWhenSyncEmpty: 0

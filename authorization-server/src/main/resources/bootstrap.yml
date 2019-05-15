@@ -1,0 +1,21 @@
+server:
+  port: 0
+
+spring:
+ application:
+  name: authorization-server
+  
+eureka:
+  client:
+    registryFetchIntervalSeconds: 10
+    serviceUrl:
+      defaultZone: http://${EUREKA_SERVER_IP}:${EUREKA_SERVER_PORT}/eureka/
+hystrix:
+  command:
+    default:
+      execution:
+        timeout:
+          enabled: false
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000

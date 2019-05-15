@@ -1,0 +1,52 @@
+#server port set to zero intentionally to use random one
+server:
+ port: ${REST_GATEWAY_PORT}
+
+spring:
+ application:
+  name: rest-gateway
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_SERVER_IP}:${EUREKA_SERVER_PORT}/eureka/
+
+
+
+zuul:
+  sensitiveHeaders:
+  host:
+   socket-timeout-millis: 30000
+   connect-timeout-millis: 30000
+  routes:
+    security:
+      path: /authorization-server/**
+      serviceId: authorization-server
+    productService:
+      path: /product-service/**
+      serviceId: product-service      
+    reviewService:
+      path: /review-service/**
+      serviceId: review-service      
+           
+      
+security:
+ basic:
+  enable: false
+
+
+
+hystrix:
+  command:
+    default:
+      execution:
+        timeout:
+         enabled: false
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000
+
+ribbon:
+  ConnectTimeout:  10000
+  ReadTimeout:  10000
+        
